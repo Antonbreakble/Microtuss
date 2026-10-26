@@ -20,9 +20,15 @@ ROOT = Path(__file__).resolve().parents[1]
 # Each entry: a module a front end may import, and the packages it must not
 # drag in by doing so.
 FORBIDDEN = {
-    "iecst.core.session": ("iecst.testing", "iecst.cli"),
-    "iecst.core.model": ("iecst.testing", "iecst.cli"),
-    "iecst.testing.bench": ("iecst.cli",),
+    "iecst.core.session": ("iecst.testing", "iecst.cli", "iecst.gui"),
+    "iecst.core.model": ("iecst.testing", "iecst.cli", "iecst.gui"),
+    "iecst.testing.bench": ("iecst.cli", "iecst.gui"),
+    # The two front ends are peers: neither is the other's dependency, so
+    # neither may import the other.
+    "iecst.cli": ("iecst.gui",),
+    "iecst.cli.commands": ("iecst.gui",),
+    "iecst.gui.panel": ("iecst.testing", "iecst.cli"),
+    "iecst.gui": ("iecst.testing", "iecst.cli"),
 }
 
 
@@ -65,6 +71,19 @@ class TestLayerBoundaries(unittest.TestCase):
         imported = _import_trace("iecst.testing.bench").split()
         self.assertIn("iecst.testing.bench", imported)
         self.assertNotIn("iecst.cli", imported)
+
+    def test_the_panel_needs_no_display(self):
+        # The window is the only part that wants tkinter; the logic behind it
+        # must import and run on a machine with no screen (a test runner, CI).
+        imported = _import_trace("iecst.gui.panel").split()
+        self.assertIn("iecst.gui.panel", imported)
+        self.assertNotIn("tkinter", imported)
+
+    def test_importing_the_gui_package_does_not_open_the_window(self):
+        imported = _import_trace("iecst.gui").split()
+        self.assertIn("iecst.gui.panel", imported)
+        self.assertNotIn("tkinter", imported)
+        self.assertNotIn("iecst.gui.app", imported)
 
 
 class TestPublicFacade(unittest.TestCase):

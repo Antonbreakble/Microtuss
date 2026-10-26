@@ -14,11 +14,12 @@ dependencies = []
 
 [project.scripts]
 iecst = "iecst.cli:main"
+iecst-gui = "iecst.gui:main"
 
 [tool.setuptools.packages.find]
-# Finds iecst, iecst.core, iecst.testing and iecst.cli.  Listing the packages
-# by hand would break silently the moment a layer is added -- which is exactly
-# what a GUI would be.
+# Finds iecst, iecst.core, iecst.testing, iecst.cli and iecst.gui.  Listing the
+# packages by hand would break silently the moment a layer is added -- which is
+# exactly what iecst.gui was.
 include = ["iecst*"]
 
 [tool.pytest.ini_options]
