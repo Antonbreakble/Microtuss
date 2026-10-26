@@ -3,7 +3,9 @@
     python3 benchmarks/analog_input/test_analog_input.py
 
 The block is used exactly as the project ships it: every file under ``src/``
-is loaded as-is, one file per CODESYS object, with no edits and no stubs.
+is loaded as-is, one file per CODESYS object, with no stubs and no changes to
+the code.  The one exception is the author stamp in four header comments,
+reduced to a pseudonym -- the lines the tests depend on are untouched.
 
 What the block does, from the source:
 
