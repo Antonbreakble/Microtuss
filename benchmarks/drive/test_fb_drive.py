@@ -11,11 +11,11 @@ import sys
 from pathlib import Path
 
 # This file sits two levels down (benchmarks/<name>/), so running it directly
-# does not put the repository root on sys.path, and `iecst` would not be
+# does not put the repository root on sys.path, and `microtuss` would not be
 # importable.  Add the root.  After `pip install -e .` this changes nothing.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from iecst import Testbench  # noqa: E402
+from microtuss import Testbench  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 

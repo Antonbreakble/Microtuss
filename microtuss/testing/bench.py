@@ -1,6 +1,6 @@
 """``Testbench`` -- the assertion layer, for people writing tests.
 
-This is the layer that turns a :class:`~iecst.core.session.Session` into
+This is the layer that turns a :class:`~microtuss.core.session.Session` into
 something a test reads well in: ``expect(...)`` records a result instead of
 raising, so one run reports every mismatch, and ``summary()`` prints them.
 
@@ -15,11 +15,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Mapping, Sequence
 
-from iecst.core.errors import IecError, IecNameError
-from iecst.core.model import Model
-from iecst.core.session import Session
-from iecst.core.stdlib import format_time
-from iecst.core.values import PointerValue
+from microtuss.core.errors import IecError, IecNameError
+from microtuss.core.model import Model
+from microtuss.core.session import Session
+from microtuss.core.stdlib import format_time
+from microtuss.core.values import PointerValue
 
 __all__ = ["Expectation", "Testbench", "run_scenario"]
 

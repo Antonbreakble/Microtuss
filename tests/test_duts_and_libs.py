@@ -7,10 +7,10 @@ blocks, and the block under test referring to both.
 
 import unittest
 
-from iecst.testing.bench import Testbench
-from iecst.core.errors import IecError, IecNameError, IecTypeError
-from iecst.core.interpreter import Runtime
-from iecst.core.model import load_sources
+from microtuss.testing.bench import Testbench
+from microtuss.core.errors import IecError, IecNameError, IecTypeError
+from microtuss.core.interpreter import Runtime
+from microtuss.core.model import load_sources
 
 DUTS = """
 TYPE
@@ -344,7 +344,7 @@ class TestClockFunctions(unittest.TestCase):
 
 class TestCheckAcrossFiles(unittest.TestCase):
     def test_check_reports_pous_from_every_file(self):
-        from iecst.core.session import check
+        from microtuss.core.session import check
 
         problems = check({"duts.st": DUTS, "utils.st": UTILS, "main.st": MAIN})
         self.assertEqual(problems, [])

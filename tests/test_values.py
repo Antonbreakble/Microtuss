@@ -1,8 +1,8 @@
 import struct
 import unittest
 
-from iecst.core.errors import IecTypeError
-from iecst.core.values import (
+from microtuss.core.errors import IecTypeError
+from microtuss.core.values import (
     ARRAY,
     BUILTIN_TYPES,
     ENUM,

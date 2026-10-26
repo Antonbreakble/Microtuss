@@ -1,6 +1,6 @@
 # Как писать тесты на Python
 
-Практическое руководство по `iecst` для случая, когда блок надо прогнать из
+Практическое руководство по `microtuss` для случая, когда блок надо прогнать из
 Python. От «подать вход и проверить выход» до DUT, библиотек и разбора ошибок.
 
 Для запуска нужен Python 3.11+. Зависимостей нет.
@@ -45,7 +45,7 @@ $ python3 examples/01_first_test.py
 отсчёт `TravelTime`, после чего выход меняется.
 
 ```python
-from iecst import Testbench
+from microtuss import Testbench
 
 tb = Testbench.from_file("examples/valve.st", "FB_Valve", cycle_time="10ms")
 
@@ -413,7 +413,7 @@ tb = Testbench.from_file(
 Когда исходники не на диске — например, пришли из базы или редактора:
 
 ```python
-from iecst import Testbench, load_sources
+from microtuss import Testbench, load_sources
 
 model = load_sources({"a.st": "...", "b.st": "..."})
 tb = Testbench(model, "MyBlock", cycle_time="10ms")
@@ -424,7 +424,7 @@ tb = Testbench(model, "MyBlock", cycle_time="10ms")
 Если нужен не набор тестов, а один прогон — `run_scenario`:
 
 ```python
-from iecst import run_scenario
+from microtuss import run_scenario
 
 state = run_scenario(
     "Tank.st", "FB_Tank",
@@ -443,7 +443,7 @@ print(state["STATE"])
 чём строится управление блоком из кода, CLI и будущий GUI.
 
 ```python
-from iecst import Session
+from microtuss import Session
 
 s = Session.from_folder("examples/project", "FB_Tank", cycle_time="100ms")
 
@@ -510,7 +510,7 @@ s.display("State", 2)           # 'FULL' — номер -> имя члена
 
 ```python
 from pathlib import Path
-from iecst import Runtime, load_sources
+from microtuss import Runtime, load_sources
 
 source = Path("examples/project/Utils.st").read_text(encoding="utf-8-sig")
 model = load_sources({"u.st": source})
@@ -557,7 +557,7 @@ POU под тестом, а не произвольный экземпляр.
 ```python
 import unittest
 from pathlib import Path
-from iecst import Testbench
+from microtuss import Testbench
 
 HERE = Path(__file__).resolve().parent
 PROJECT = HERE / "project"
@@ -607,7 +607,7 @@ $ python3 -m unittest discover -s tests -t .
 модель. Экземпляр при этом создаётся свой на каждый тест:
 
 ```python
-from iecst import Testbench, load_sources
+from microtuss import Testbench, load_sources
 
 MODEL = load_sources({str(p): p.read_text(encoding="utf-8-sig")
                       for p in sorted(PROJECT.glob("*.st"))})
@@ -656,7 +656,7 @@ def test_percent_follows_the_level(self):
 Исключения устроены иерархично, поэтому ловить можно группой:
 
 ```python
-from iecst import IecError, IecSyntaxError, IecTypeError, IecNameError
+from microtuss import IecError, IecSyntaxError, IecTypeError, IecNameError
 
 try:
     tb.set(Limits={"lol": 1.0})
@@ -678,7 +678,7 @@ IecError
 возвращает список проблем, поэтому годится и для отчёта, и для проверки в CI:
 
 ```python
-from iecst.core.session import check
+from microtuss.core.session import check
 
 problems = check("my_project")                  # папка целиком
 problems = check(["FB_AI.st", "Types.st"])      # или список файлов
@@ -689,11 +689,11 @@ if problems:
 
 Пустой список — всё разобралось, слинковалось и типы известны. Синтаксическая
 ошибка и неизвестный тип возвращаются одинаково, списком; папка читается так же,
-как в `Session.from_folder`. Это то, что делает команда `iecst check`:
+как в `Session.from_folder`. Это то, что делает команда `microtuss check`:
 
 ```console
-$ iecst check my_project/
-$ iecst run my_project/ --pou FB_Tank --set Fill=true --scans 2
+$ microtuss check my_project/
+$ microtuss run my_project/ --pou FB_Tank --set Fill=true --scans 2
 ```
 
 Разбор ошибок вживую — [`examples/08_mistakes.py`](08_mistakes.py).

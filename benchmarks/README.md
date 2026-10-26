@@ -26,7 +26,7 @@ $ python3 benchmarks/analog_input/test_analog_input.py   # 32 теста
 вспомогательный блок `EmaFilter`, функции `LIMIT_R` / `SCALE_R` и DUT-типы.
 
 ```console
-$ find benchmarks/analog_input/src -name '*.st' -exec python3 -m iecst check {} +
+$ find benchmarks/analog_input/src -name '*.st' -exec python3 -m microtuss check {} +
 ok: 4 POU(s), 42 type(s), 0 global(s)
   FUNCTION_BLOCK ANALOGINPUT
   FUNCTION_BLOCK EMAFILTER

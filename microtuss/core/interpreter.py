@@ -11,11 +11,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from iecst.core import ast_nodes as A
-from iecst.core.errors import IecError, IecNameError, IecRuntimeError, IecTypeError
-from iecst.core.model import Model, PouEntry
-from iecst.core.stdlib import STANDARD_FUNCTIONS, NativeFb, StdFunction, _div, _mod, format_time
-from iecst.core.values import (
+from microtuss.core import ast_nodes as A
+from microtuss.core.errors import IecError, IecNameError, IecRuntimeError, IecTypeError
+from microtuss.core.model import Model, PouEntry
+from microtuss.core.stdlib import STANDARD_FUNCTIONS, NativeFb, StdFunction, _div, _mod, format_time
+from microtuss.core.values import (
     ANY,
     ARRAY,
     BITSTR,

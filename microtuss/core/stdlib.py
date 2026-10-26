@@ -1,7 +1,7 @@
 """The standard function and function-block library.
 
 Functions are plain Python callables with declared parameters; function blocks
-are subclasses of :class:`~iecst.values.FbInstance` so that their state survives
+are subclasses of :class:`~microtuss.values.FbInstance` so that their state survives
 from one scan to the next, exactly like a user-written FB.
 
 Timers read the *virtual* clock exposed by the environment (``env.now`` in
@@ -15,8 +15,8 @@ import math
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from iecst.core.errors import IecRuntimeError
-from iecst.core.values import (
+from microtuss.core.errors import IecRuntimeError
+from microtuss.core.values import (
     BUILTIN_TYPES,
     FB,
     INT,

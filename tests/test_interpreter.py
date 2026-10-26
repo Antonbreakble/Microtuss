@@ -1,8 +1,8 @@
 import unittest
 
-from iecst.core.errors import IecNameError, IecRuntimeError, IecTypeError
-from iecst.core.interpreter import Runtime, parse_time
-from iecst.core.model import load_sources
+from microtuss.core.errors import IecNameError, IecRuntimeError, IecTypeError
+from microtuss.core.interpreter import Runtime, parse_time
+from microtuss.core.model import load_sources
 
 
 def build(src, pou="FB", cycle="10ms"):

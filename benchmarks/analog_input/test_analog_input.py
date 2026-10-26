@@ -24,11 +24,11 @@ import sys
 from pathlib import Path
 
 # This file sits two levels down (benchmarks/<name>/), so running it directly
-# does not put the repository root on sys.path, and `iecst` would not be
+# does not put the repository root on sys.path, and `microtuss` would not be
 # importable.  Add the root.  After `pip install -e .` this changes nothing.
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from iecst import Testbench  # noqa: E402
+from microtuss import Testbench  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 PROJECT = HERE / "src"
@@ -48,7 +48,7 @@ BIT_NEG_OVERFLOW = 10
 def bench(**kwargs) -> Testbench:
     """Load every .st file under src/ and instantiate the block."""
     sources = {str(p): p.read_text(encoding="utf-8-sig") for p in sorted(PROJECT.rglob("*.st"))}
-    from iecst.core.model import load_sources
+    from microtuss.core.model import load_sources
 
     return Testbench(load_sources(sources), "AnalogInput", cycle_time="10ms", **kwargs)
 
@@ -407,7 +407,7 @@ def test_scale_r_returns_zero_for_a_zero_width_range() -> None:
 
 
 def test_ema_filter_moves_towards_the_input() -> None:
-    from iecst.core.interpreter import Frame
+    from microtuss.core.interpreter import Frame
 
     tb = bench()
     rt = tb.runtime

@@ -12,9 +12,9 @@ silently change behaviour instead raises a located syntax error.
 
 from __future__ import annotations
 
-from iecst.core import ast_nodes as A
-from iecst.core.errors import IecSyntaxError
-from iecst.core.lexer import TYPE_NAMES, Token, tokenize
+from microtuss.core import ast_nodes as A
+from microtuss.core.errors import IecSyntaxError
+from microtuss.core.lexer import TYPE_NAMES, Token, tokenize
 
 _SECTION_BY_KEYWORD = {
     "VAR": "local",
@@ -780,5 +780,5 @@ class Parser:
 
 
 def parse_text(text: str, filename: str = "<st>") -> A.SourceUnit:
-    """Tokenize and parse *text* into a :class:`~iecst.ast_nodes.SourceUnit`."""
+    """Tokenize and parse *text* into a :class:`~microtuss.ast_nodes.SourceUnit`."""
     return Parser(tokenize(text, filename), filename).parse_unit(filename)

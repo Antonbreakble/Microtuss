@@ -1,11 +1,11 @@
 """The window: a folder, a block, and the scan controls around it.
 
-Everything with a decision in it is in :mod:`iecst.gui.panel`; this module only
+Everything with a decision in it is in :mod:`microtuss.gui.panel`; this module only
 draws it and forwards clicks.  Tkinter is in the standard library, so the GUI
 adds nothing to install -- which is why it was chosen over a web view or Qt for
 a tool whose whole point is that it has no dependencies.
 
-Run it with ``python -m iecst.gui`` or the ``iecst-gui`` script.
+Run it with ``python -m microtuss.gui`` or the ``microtuss-gui`` script.
 """
 
 from __future__ import annotations
@@ -14,8 +14,8 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from typing import Any, Callable
 
-from iecst.core.errors import IecError
-from iecst.gui.panel import Panel, runnable_pous
+from microtuss.core.errors import IecError
+from microtuss.gui.panel import Panel, runnable_pous
 
 __all__ = ["Gui", "main"]
 
@@ -74,7 +74,7 @@ class Gui:
         self._value_vars: dict[str, tk.StringVar] = {}
         self._readout_vars: dict[str, tk.StringVar] = {}
 
-        root.title("iecst — прогон блока из CODESYS")
+        root.title("Microtuss — прогон блока из CODESYS")
         root.minsize(760, 520)
 
         self._build_toolbar()
@@ -358,7 +358,7 @@ class Gui:
 
     def _fail(self, message: str) -> None:
         self.status_var.set(message)
-        messagebox.showerror("iecst", message)
+        messagebox.showerror("Microtuss", message)
 
 
 def main(folder: str | None = None, pou: str | None = None) -> int:

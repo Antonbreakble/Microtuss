@@ -1,4 +1,4 @@
-# iecst — тестирование Function Block из CODESYS на Python
+# Microtuss — тестирование Function Block из CODESYS на Python
 
 Интерпретатор Structured Text (IEC 61131-3). Берёт исходник FB, поданный как
 `.st`-файл (или папку файлов — по объекту на файл, как их отдаёт CODESYS),
@@ -6,7 +6,7 @@
 Python: без CODESYS, без контроллера, без стенда.
 
 ```console
-$ iecst run examples/valve.st --set Cmd=true --scans 3 --expect Busy=true
+$ microtuss run examples/valve.st --set Cmd=true --scans 3 --expect Busy=true
 FB_VALVE: 1/1 expectations passed
 ```
 
@@ -20,7 +20,7 @@ $ python3 examples/01_first_test.py
 ```
 
 ```python
-from iecst import Testbench
+from microtuss import Testbench
 
 tb = Testbench.from_file("valve.st", "FB_Valve", cycle_time="10ms")
 
@@ -164,11 +164,11 @@ array index 3 out of range 1..2 for ARRAY[1..2] OF T_DRIVECONFIG
 ## CLI
 
 ```console
-$ iecst check valve.st                          # разобрать и слинковать
+$ microtuss check valve.st                          # разобрать и слинковать
 ok: 1 POU(s), 38 type(s), 2 global(s)
   FUNCTION_BLOCK FB_VALVE
 
-$ iecst vars  valve.st                          # какие входы и выходы у блока
+$ microtuss vars  valve.st                          # какие входы и выходы у блока
 FB_VALVE (FUNCTION_BLOCK)
   inputs:
     CMD                  BOOL
@@ -178,15 +178,15 @@ FB_VALVE (FUNCTION_BLOCK)
     BUSY                 BOOL
     STATE                E_VALVESTATE  (CLOSED, OPEN)
 
-$ iecst run   valve.st --set Cmd=true --scans 3
-$ iecst scan  valve.st --set Cmd=true --scans 5 --trace
-$ iecst run   valve.st --set Cmd=true --scans 3 --expect Open=true   # код 1 при провале
+$ microtuss run   valve.st --set Cmd=true --scans 3
+$ microtuss scan  valve.st --set Cmd=true --scans 5 --trace
+$ microtuss run   valve.st --set Cmd=true --scans 3 --expect Open=true   # код 1 при провале
 
-$ iecst run Tank.st --include Types.st --include Utils.st \
+$ microtuss run Tank.st --include Types.st --include Utils.st \
       --set 'Limits={"lo": 0, "hi": 50}' --scans 5
 
-$ iecst check my_project/                       # папка читается целиком
-$ iecst run   my_project/ --pou FB_Tank --set Fill=true --scans 2
+$ microtuss check my_project/                       # папка читается целиком
+$ microtuss run   my_project/ --pou FB_Tank --set Fill=true --scans 2
 ```
 
 Общие ключи: `--pou` (если в файле не один блок), `--include` (библиотека,
@@ -194,7 +194,7 @@ $ iecst run   my_project/ --pou FB_Tank --set Fill=true --scans 2
 `NAME=VALUE`; структуру можно задать JSON-ом).
 
 Вместо файла везде можно дать папку — она раскрывается во все `.st` под ней,
-как проект отдаёт CODESYS. `iecst check` при этом сообщает о проблемах списком
+как проект отдаёт CODESYS. `microtuss check` при этом сообщает о проблемах списком
 и не падает с исключением.
 
 ## GUI
@@ -203,8 +203,8 @@ $ iecst run   my_project/ --pou FB_Tank --set Fill=true --scans 2
 отметить нужные входы и выходы и гонять сканы кнопкой.
 
 ```console
-$ python3 -m iecst.gui                       # или iecst-gui после pip install -e .
-$ python3 -m iecst.gui examples/project FB_Tank   # сразу с проектом
+$ python3 -m microtuss.gui                       # или microtuss-gui после pip install -e .
+$ python3 -m microtuss.gui examples/project FB_Tank   # сразу с проектом
 ```
 
 - **Папка** — тот же проект, что и для `Session.from_folder`; зависимости
@@ -232,8 +232,8 @@ $ python3 -m iecst.gui examples/project FB_Tank   # сразу с проекто
 
 GUI — отдельный слой вроде `cli`: он импортирует только `core` и не меняет
 ничего в движке. Логика окна (какой блок предложить, как разобрать введённое,
-что значит один скан) вынесена в `iecst/gui/panel.py` и тестируется без экрана;
-`tkinter` тянет только `iecst/gui/app.py`. Внешних зависимостей по-прежнему
+что значит один скан) вынесена в `microtuss/gui/panel.py` и тестируется без экрана;
+`tkinter` тянет только `microtuss/gui/app.py`. Внешних зависимостей по-прежнему
 нет — `tkinter` входит в стандартную поставку Python.
 
 ## Что поддерживается
@@ -266,7 +266,7 @@ GUI — отдельный слой вроде `cli`: он импортируе�
 тестом (`tests/test_layering.py`), а не поддерживается на честном слове.
 
 ```
-iecst/
+microtuss/
   core/           движок — без ввода-вывода, ничего не печатает и не выходит
     errors.py       исключения с координатой в исходнике
     values.py       система типов: заворот целых, ячейки, массивы, структуры
@@ -298,7 +298,7 @@ benchmarks/     тесты на настоящих блоках (46)
 | `gui` | `core` | `testing`, `cli` |
 
 `core` импортируется, не подтягивая ни `argparse`, ни понятие проваленного
-ожидания, — на этом стоит GUI. Реэкспорты в `iecst/__init__.py` ленивые ровно
+ожидания, — на этом стоит GUI. Реэкспорты в `microtuss/__init__.py` ленивые ровно
 ради этого.
 
 ### Свой блок
@@ -307,7 +307,7 @@ benchmarks/     тесты на настоящих блоках (46)
 2. Создайте сессию: папка загружается целиком, все `.st` под ней.
 
 ```python
-from iecst import Session, Testbench
+from microtuss import Session, Testbench
 
 session = Session.from_folder("my_project", "MyBlock", cycle_time="10ms")
 bench = Testbench.from_folder("my_project", "MyBlock", cycle_time="10ms")
@@ -321,7 +321,7 @@ bench = Testbench.from_folder("my_project", "MyBlock", cycle_time="10ms")
 не знает про ожидания и умеет описывать интерфейс блока:
 
 ```python
-from iecst import Session
+from microtuss import Session
 
 s = Session.from_folder("my_project", "MyBlock", cycle_time="10ms")
 for v in s.inputs():
@@ -334,7 +334,7 @@ s.step()
 s.snapshot()          # всё состояние: TIME как T#..., enum именем члена
 ```
 
-То же самое показывает команда `iecst vars`.
+То же самое показывает команда `microtuss vars`.
 
 ## Тесты
 

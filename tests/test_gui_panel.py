@@ -1,6 +1,6 @@
 """The GUI's logic, exercised without opening a window.
 
-Everything the window decides is in ``iecst.gui.panel``, so it can be tested
+Everything the window decides is in ``microtuss.gui.panel``, so it can be tested
 here: which blocks a folder offers, how a typed value becomes a value, and what
 one scan writes and reads.  No tkinter is imported by any of it.
 """
@@ -9,8 +9,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from iecst.core.errors import IecError, IecRuntimeError, IecTypeError
-from iecst.gui.panel import Panel, decode_text, render, runnable_pous
+from microtuss.core.errors import IecError, IecRuntimeError, IecTypeError
+from microtuss.gui.panel import Panel, decode_text, render, runnable_pous
 
 PROJECT = Path("examples/project")
 

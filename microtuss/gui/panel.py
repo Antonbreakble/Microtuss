@@ -18,10 +18,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from iecst.core.errors import IecError, IecTypeError
-from iecst.core.session import Session, Variable, load
-from iecst.core.stdlib import format_time
-from iecst.core.values import ARRAY, BOOL, ENUM, STRING, STRUCT, TIME
+from microtuss.core.errors import IecError, IecTypeError
+from microtuss.core.session import Session, Variable, load
+from microtuss.core.stdlib import format_time
+from microtuss.core.values import ARRAY, BOOL, ENUM, STRING, STRUCT, TIME
 
 __all__ = ["Panel", "Row", "decode_text", "render", "runnable_pous"]
 
@@ -44,7 +44,7 @@ def runnable_pous(folder: "str | Path") -> list[str]:
 def decode_text(variable: Variable, text: str) -> Any:
     """Turn what the user typed into a value for *variable*, by its declaration.
 
-    :class:`~iecst.core.session.Variable` describes the target, so the
+    :class:`~microtuss.core.session.Variable` describes the target, so the
     conversion is decided rather than guessed:
 
     * ``BOOL`` never gets here -- the form draws a checkbox, and its state is

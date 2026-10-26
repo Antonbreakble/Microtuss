@@ -2,7 +2,7 @@
 
     python3 examples/04_unittest.py     # or: python3 -m pytest examples/
 
-Nothing in iecst depends on a test runner -- ``Testbench`` is an ordinary
+Nothing in microtuss depends on a test runner -- ``Testbench`` is an ordinary
 object, so ``unittest``, ``pytest`` and a bare ``assert`` all work.  The
 ``failures`` list is what lets a test report *several* mismatches per run
 instead of stopping at the first one.
@@ -13,12 +13,12 @@ import unittest
 from pathlib import Path
 
 # This file sits in examples/, so running it directly puts examples/ -- not
-# the repository root -- on sys.path, and `iecst` would not be importable.
+# the repository root -- on sys.path, and `microtuss` would not be importable.
 # Add the root.  After `pip install -e .` the package is on the path anyway,
 # and this line changes nothing.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from iecst import Testbench  # noqa: E402
+from microtuss import Testbench  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 VALVE = HERE / "valve.st"

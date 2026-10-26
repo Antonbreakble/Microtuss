@@ -1,10 +1,10 @@
 """Command-line front end.
 
-    python -m iecst run FB_Motor.st --pou FB_Motor --set Start=true --scans 60
-    python -m iecst check FB_Motor.st
-    python -m iecst scan FB_Motor.st --set Start=true --scans 5 --trace
+    python -m microtuss run FB_Motor.st --pou FB_Motor --set Start=true --scans 60
+    python -m microtuss check FB_Motor.st
+    python -m microtuss scan FB_Motor.st --set Start=true --scans 5 --trace
 
-The commands are thin: they parse arguments, call :mod:`iecst.core.session`,
+The commands are thin: they parse arguments, call :mod:`microtuss.core.session`,
 and print.  Anything with a decision in it lives in the core, so the shell and
 a future GUI cannot drift apart.
 """
@@ -16,9 +16,9 @@ import json
 import sys
 from pathlib import Path
 
-from iecst.core.errors import IecError
-from iecst.core.session import Session, check, load
-from iecst.testing.bench import Testbench
+from microtuss.core.errors import IecError
+from microtuss.core.session import Session, check, load
+from microtuss.testing.bench import Testbench
 
 __all__ = ["build_parser", "main"]
 
@@ -132,7 +132,7 @@ def cmd_check(args: argparse.Namespace) -> int:
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        prog="iecst", description="Run and test IEC 61131-3 Structured Text function blocks."
+        prog="microtuss", description="Run and test IEC 61131-3 Structured Text function blocks."
     )
     sub = parser.add_subparsers(dest="command", required=True)
 

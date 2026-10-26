@@ -10,9 +10,9 @@ second argument as a value to store rather than as storage to alias.
 import unittest
 from pathlib import Path
 
-from iecst import Session, Testbench, load_sources
-from iecst.core.errors import IecError, IecNameError, IecSyntaxError, IecTypeError
-from iecst.core.session import check
+from microtuss import Session, Testbench, load_sources
+from microtuss.core.errors import IecError, IecNameError, IecSyntaxError, IecTypeError
+from microtuss.core.session import check
 
 DUTS = """
 TYPE T_Limits : STRUCT

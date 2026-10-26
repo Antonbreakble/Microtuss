@@ -1,9 +1,9 @@
 import unittest
 
-from iecst.core.errors import IecRuntimeError
-from iecst.core.interpreter import Runtime
-from iecst.core.model import load_sources
-from iecst.core.stdlib import format_time, format_tod
+from microtuss.core.errors import IecRuntimeError
+from microtuss.core.interpreter import Runtime
+from microtuss.core.model import load_sources
+from microtuss.core.stdlib import format_time, format_tod
 
 
 def run(src, pou="FB", scans=1, cycle="10ms", **inputs):

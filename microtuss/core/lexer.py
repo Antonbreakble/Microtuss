@@ -16,7 +16,7 @@ from __future__ import annotations
 import datetime
 from dataclasses import dataclass
 
-from iecst.core.errors import IecSyntaxError
+from microtuss.core.errors import IecSyntaxError
 
 # --- keyword tables -------------------------------------------------------
 

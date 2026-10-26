@@ -20,7 +20,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from iecst.core.errors import IecTypeError
+from microtuss.core.errors import IecTypeError
 
 # --- type kinds -----------------------------------------------------------
 

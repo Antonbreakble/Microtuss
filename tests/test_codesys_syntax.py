@@ -9,9 +9,9 @@ if it is ignored rather than implemented.
 
 import unittest
 
-from iecst.core.errors import IecNameError, IecTypeError
-from iecst.core.interpreter import Runtime
-from iecst.core.model import load_sources
+from microtuss.core.errors import IecNameError, IecTypeError
+from microtuss.core.interpreter import Runtime
+from microtuss.core.model import load_sources
 
 
 def build(src, pou="FB", **kw):
@@ -178,7 +178,7 @@ class TestInlineEnum(unittest.TestCase):
         # No CODESYS export does this, and resolving it would mean guessing
         # which of two readings was meant, so it is refused rather than
         # silently choosing one.
-        from iecst.core.errors import IecSyntaxError
+        from microtuss.core.errors import IecSyntaxError
 
         with self.assertRaises(IecSyntaxError):
             load_sources({"<t>": "FUNCTION_BLOCK Final END_FUNCTION_BLOCK"})
@@ -410,7 +410,7 @@ class TestOptionalTerminators(unittest.TestCase):
         self.assertEqual(rt.get("O"), 0)
 
     def test_an_alias_still_needs_its_semicolon(self):
-        from iecst.core.errors import IecSyntaxError
+        from microtuss.core.errors import IecSyntaxError
 
         with self.assertRaises(IecSyntaxError):
             load_sources({"<t>": "TYPE T_A : INT END_TYPE"})
@@ -461,13 +461,13 @@ class TestMissingClosingKeyword(unittest.TestCase):
     def test_a_truncated_statement_is_still_reported(self):
         # Dropping the closing keyword must not turn a real syntax error into
         # something that silently parses.
-        from iecst.core.errors import IecSyntaxError
+        from microtuss.core.errors import IecSyntaxError
 
         with self.assertRaises(IecSyntaxError):
             load_sources({"<t>": "FUNCTION_BLOCK FB\nVAR_OUTPUT x : INT; END_VAR\nx := ;"})
 
     def test_an_unterminated_var_section_is_still_reported(self):
-        from iecst.core.errors import IecSyntaxError
+        from microtuss.core.errors import IecSyntaxError
 
         with self.assertRaises(IecSyntaxError):
             load_sources({"<t>": "FUNCTION_BLOCK FB\nVAR_OUTPUT x : INT;\nx := 1;"})

@@ -30,10 +30,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Mapping
 
-from iecst.core.errors import IecError, IecNameError
-from iecst.core.interpreter import Runtime
-from iecst.core.model import Model, load_sources, validate
-from iecst.core.values import (
+from microtuss.core.errors import IecError, IecNameError
+from microtuss.core.interpreter import Runtime
+from microtuss.core.model import Model, load_sources, validate
+from microtuss.core.values import (
     BOOL,
     ENUM,
     REFERENCE,
