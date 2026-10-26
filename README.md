@@ -2,7 +2,7 @@
 
 <p align="center">
   <img
-    src="docs/assets/preview.png"
+    src="docs/assets/main-preview.png"
     alt="Microtuss — тестирование Function Block из CODESYS на Python"
     width="100%"
   />
