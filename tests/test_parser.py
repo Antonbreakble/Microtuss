@@ -1,8 +1,8 @@
 import unittest
 
-from iecst import ast_nodes as A
-from iecst.errors import IecSyntaxError
-from iecst.parser import parse_text
+from iecst.core import ast_nodes as A
+from iecst.core.errors import IecSyntaxError
+from iecst.core.parser import parse_text
 
 
 def parse(src):

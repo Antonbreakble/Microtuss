@@ -43,7 +43,7 @@ BIT_NEG_OVERFLOW = 10
 def bench(**kwargs) -> Testbench:
     """Load every .st file under src/ and instantiate the block."""
     sources = {str(p): p.read_text(encoding="utf-8-sig") for p in sorted(PROJECT.rglob("*.st"))}
-    from iecst.model import load_sources
+    from iecst.core.model import load_sources
 
     return Testbench(load_sources(sources), "AnalogInput", cycle_time="10ms", **kwargs)
 
@@ -402,7 +402,7 @@ def test_scale_r_returns_zero_for_a_zero_width_range() -> None:
 
 
 def test_ema_filter_moves_towards_the_input() -> None:
-    from iecst.interpreter import Frame
+    from iecst.core.interpreter import Frame
 
     tb = bench()
     rt = tb.runtime

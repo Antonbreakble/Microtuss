@@ -11,11 +11,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any
 
-from . import ast_nodes as A
-from .errors import IecError, IecNameError, IecRuntimeError, IecTypeError
-from .model import Model, PouEntry
-from .stdlib import STANDARD_FUNCTIONS, NativeFb, StdFunction, _div, _mod, format_time
-from .values import (
+from iecst.core import ast_nodes as A
+from iecst.core.errors import IecError, IecNameError, IecRuntimeError, IecTypeError
+from iecst.core.model import Model, PouEntry
+from iecst.core.stdlib import STANDARD_FUNCTIONS, NativeFb, StdFunction, _div, _mod, format_time
+from iecst.core.values import (
     ANY,
     ARRAY,
     BITSTR,

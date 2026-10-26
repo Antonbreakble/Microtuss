@@ -15,8 +15,8 @@ import math
 from dataclasses import dataclass
 from typing import Any, Callable
 
-from .errors import IecRuntimeError
-from .values import (
+from iecst.core.errors import IecRuntimeError
+from iecst.core.values import (
     BUILTIN_TYPES,
     FB,
     INT,

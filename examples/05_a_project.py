@@ -25,7 +25,7 @@ PROJECT = HERE / "project"
 # The whole folder: each file is one CODESYS object.
 SOURCES = {str(p): p.read_text(encoding="utf-8-sig") for p in sorted(PROJECT.glob("*.st"))}
 
-from iecst.model import load_sources  # noqa: E402
+from iecst.core.model import load_sources  # noqa: E402
 
 
 def tank(**kwargs) -> Testbench:

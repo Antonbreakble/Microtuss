@@ -1,9 +1,9 @@
 import unittest
 
-from iecst.errors import IecRuntimeError
-from iecst.interpreter import Runtime
-from iecst.model import load_sources
-from iecst.stdlib import format_time, format_tod
+from iecst.core.errors import IecRuntimeError
+from iecst.core.interpreter import Runtime
+from iecst.core.model import load_sources
+from iecst.core.stdlib import format_time, format_tod
 
 
 def run(src, pou="FB", scans=1, cycle="10ms", **inputs):

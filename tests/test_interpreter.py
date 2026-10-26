@@ -1,8 +1,8 @@
 import unittest
 
-from iecst.errors import IecNameError, IecRuntimeError, IecTypeError
-from iecst.interpreter import Runtime, parse_time
-from iecst.model import load_sources
+from iecst.core.errors import IecNameError, IecRuntimeError, IecTypeError
+from iecst.core.interpreter import Runtime, parse_time
+from iecst.core.model import load_sources
 
 
 def build(src, pou="FB", cycle="10ms"):

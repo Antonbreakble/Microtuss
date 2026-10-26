@@ -168,6 +168,16 @@ $ iecst check valve.st                          # разобрать и слин
 ok: 1 POU(s), 38 type(s), 2 global(s)
   FUNCTION_BLOCK FB_VALVE
 
+$ iecst vars  valve.st                          # какие входы и выходы у блока
+FB_VALVE (FUNCTION_BLOCK)
+  inputs:
+    CMD                  BOOL
+    TRAVELTIME           TIME
+  outputs:
+    OPEN                 BOOL
+    BUSY                 BOOL
+    STATE                E_VALVESTATE  (CLOSED, OPEN)
+
 $ iecst run   valve.st --set Cmd=true --scans 3
 $ iecst scan  valve.st --set Cmd=true --scans 5 --trace
 $ iecst run   valve.st --set Cmd=true --scans 3 --expect Open=true   # код 1 при провале
@@ -206,44 +216,79 @@ $ iecst run Tank.st --include Types.st --include Utils.st \
 
 ## Структура
 
+Пакет разбит на слои, и каждый знает только те, что ниже. Граница проверяется
+тестом (`tests/test_layering.py`), а не поддерживается на честном слове.
+
 ```
-iecst/          сам интерпретатор (пакет, зависимостей нет)
-  lexer.py        токенизация
-  parser.py       рекурсивный спуск + приоритеты операторов по стандарту
-  ast_nodes.py    узлы дерева
-  values.py       система типов: заворот целых, ячейки, массивы, структуры
-  model.py        слинкованная модель: типы, POU, глобалы
-  stdlib.py       стандартные функции и FB
-  interpreter.py  исполнение по сканам и виртуальный клок
-  api.py          Testbench — фасад для тестов
-  cli.py          командная строка
-tests/          юнит-тесты интерпретатора (257)
+iecst/
+  core/           движок — без ввода-вывода, ничего не печатает и не выходит
+    errors.py       исключения с координатой в исходнике
+    values.py       система типов: заворот целых, ячейки, массивы, структуры
+    lexer.py        токенизация
+    ast_nodes.py    узлы дерева
+    parser.py       рекурсивный спуск + приоритеты операторов по стандарту
+    model.py        слинкованная модель: типы, POU, глобалы
+    stdlib.py       стандартные функции и FB
+    interpreter.py  исполнение по сканам и виртуальный клок
+    session.py      Session — единственная дверь в движок
+  testing/        надстройка для тестов
+    bench.py        Testbench: expect() записывает, а не бросает
+  cli/            командная строка
+    commands.py     разбор аргументов и печать
+tests/          юнит-тесты интерпретатора (262)
 examples/       минимальные примеры, по одному на тему
 benchmarks/     тесты на настоящих блоках (46)
 ```
 
+| Слой | Знает о | Не знает о |
+|---|---|---|
+| `core` | только о себе | `testing`, `cli` |
+| `testing` | `core` | `cli` |
+| `cli` | `core`, `testing` | — |
+
+`core` импортируется, не подтягивая ни `argparse`, ни понятие проваленного
+ожидания, — это то, на чём будет строиться GUI. Реэкспорты в `iecst/__init__.py`
+ленивые ровно ради этого.
+
 ### Свой блок
 
 1. Положите `.st`-файлы проекта в отдельную папку — как их отдаёт CODESYS.
-2. Загрузите папку целиком и создайте стенд:
+2. Создайте сессию: папка загружается целиком, все `.st` под ней.
 
 ```python
-from pathlib import Path
-from iecst import Testbench
-from iecst.model import load_sources
+from iecst import Session, Testbench
 
-SRC = Path("my_project")
-model = load_sources({str(p): p.read_text(encoding="utf-8-sig")
-                      for p in sorted(SRC.rglob("*.st"))})
-tb = Testbench(model, "MyBlock", cycle_time="10ms")
+session = Session.from_folder("my_project", "MyBlock", cycle_time="10ms")
+bench = Testbench.from_folder("my_project", "MyBlock", cycle_time="10ms")
 ```
 
 3. Пишите тесты по образцу `examples/06_test_a_project.py`.
 
+### Движок без тестов
+
+Если нужен не тест, а управление блоком, — это `Session`. Она умеет то же, но
+не знает про ожидания и умеет описывать интерфейс блока:
+
+```python
+from iecst import Session
+
+s = Session.from_folder("my_project", "MyBlock", cycle_time="10ms")
+for v in s.inputs():
+    print(v.name, v.type_name, v.enum_members)   # чем заполнять форму
+for v in s.outputs():
+    print(v.name, v.type_name)
+
+s.set("Cmd", True)
+s.step()
+s.snapshot()          # всё состояние: TIME как T#..., enum именем члена
+```
+
+То же самое показывает команда `iecst vars`.
+
 ## Тесты
 
 ```console
-$ python3 -m unittest discover -s tests -t .             # 257 юнит-тестов
+$ python3 -m unittest discover -s tests -t .             # 262 юнит-теста
 $ python3 examples/01_first_test.py                      # примеры — обычные скрипты
 $ python3 benchmarks/analog_input/test_analog_input.py   # реальный блок, 32 теста
 ```

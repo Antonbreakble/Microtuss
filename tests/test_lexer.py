@@ -1,7 +1,7 @@
 import unittest
 
-from iecst.errors import IecSyntaxError
-from iecst.lexer import tokenize
+from iecst.core.errors import IecSyntaxError
+from iecst.core.lexer import tokenize
 
 
 def kinds(src):

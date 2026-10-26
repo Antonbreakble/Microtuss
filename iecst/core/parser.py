@@ -12,9 +12,9 @@ silently change behaviour instead raises a located syntax error.
 
 from __future__ import annotations
 
-from . import ast_nodes as A
-from .errors import IecSyntaxError
-from .lexer import TYPE_NAMES, Token, tokenize
+from iecst.core import ast_nodes as A
+from iecst.core.errors import IecSyntaxError
+from iecst.core.lexer import TYPE_NAMES, Token, tokenize
 
 _SECTION_BY_KEYWORD = {
     "VAR": "local",

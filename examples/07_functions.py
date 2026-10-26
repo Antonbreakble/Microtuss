@@ -14,7 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from iecst import Testbench  # noqa: E402
-from iecst.model import load_sources  # noqa: E402
+from iecst.core.model import load_sources  # noqa: E402
 
 HERE = Path(__file__).resolve().parent
 MODEL = load_sources(

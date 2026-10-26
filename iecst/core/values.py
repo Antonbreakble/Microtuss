@@ -20,7 +20,7 @@ import re
 from dataclasses import dataclass
 from typing import Any
 
-from .errors import IecTypeError
+from iecst.core.errors import IecTypeError
 
 # --- type kinds -----------------------------------------------------------
 

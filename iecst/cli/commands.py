@@ -3,6 +3,10 @@
     python -m iecst run FB_Motor.st --pou FB_Motor --set Start=true --scans 60
     python -m iecst check FB_Motor.st
     python -m iecst scan FB_Motor.st --set Start=true --scans 5 --trace
+
+The commands are thin: they parse arguments, call :mod:`iecst.core.session`,
+and print.  Anything with a decision in it lives in the core, so the shell and
+a future GUI cannot drift apart.
 """
 
 from __future__ import annotations
@@ -12,9 +16,11 @@ import json
 import sys
 from pathlib import Path
 
-from .api import Testbench, load, run_scenario
-from .errors import IecError
-from .model import validate
+from iecst.core.errors import IecError
+from iecst.core.session import Session, check, load
+from iecst.testing.bench import Testbench
+
+__all__ = ["build_parser", "main"]
 
 
 def _parse_value(text: str) -> object:
@@ -55,6 +61,11 @@ def _pairs(items: list[str]) -> dict[str, object]:
     return out
 
 
+def _source_files(args: argparse.Namespace) -> list[str | Path]:
+    """The files to load for one command: the libraries first, then the POU."""
+    return list(args.include or []) + [args.source]
+
+
 def cmd_run(args: argparse.Namespace) -> int:
     if args.expect:
         tb = Testbench.from_file(
@@ -66,26 +77,39 @@ def cmd_run(args: argparse.Namespace) -> int:
         print(tb.summary())
         return 1 if tb.failures else 0
 
-    state = run_scenario(
-        args.source,
-        args.pou,
-        cycle_time=args.cycle,
-        steps=[(_pairs(args.set), args.scans)],
-        includes=args.include,
-    )
-    print(json.dumps(state, indent=2, default=str))
+    session = Session.from_files(_source_files(args), args.pou, cycle_time=args.cycle)
+    session.set_many(_pairs(args.set))
+    session.run(args.scans)
+    print(json.dumps(session.snapshot(), indent=2, default=str))
     return 0
 
 
 def cmd_scan(args: argparse.Namespace) -> int:
-    tb = Testbench.from_file(args.source, args.pou, cycle_time=args.cycle, includes=args.include)
-    tb.set_many(_pairs(args.set))
+    session = Session.from_files(_source_files(args), args.pou, cycle_time=args.cycle)
+    session.set_many(_pairs(args.set))
     for _ in range(args.scans):
-        tb.step()
-        state = tb.state()
+        session.step()
         if args.trace:
-            print(f"scan {tb.scans} t={tb.runtime.now}: {json.dumps(state, default=str)}")
-    print(json.dumps(tb.state(), indent=2, default=str))
+            print(
+                f"scan {session.scans} t={session.now}: "
+                f"{json.dumps(session.snapshot(), default=str)}"
+            )
+    print(json.dumps(session.snapshot(), indent=2, default=str))
+    return 0
+
+
+def cmd_vars(args: argparse.Namespace) -> int:
+    """List the POU's interface -- what ``--set`` accepts and what comes out."""
+    session = Session.from_files(_source_files(args), args.pou, cycle_time=args.cycle)
+    print(f"{session.pou_name} ({session.pou_kind})")
+    for label, variables in (("inputs", session.inputs()), ("outputs", session.outputs())):
+        if not variables:
+            continue
+        print(f"  {label}:")
+        for variable in variables:
+            members = variable.enum_members
+            detail = f"  ({', '.join(members)})" if members else ""
+            print(f"    {variable.name:<20} {variable.type_name}{detail}")
     return 0
 
 
@@ -98,15 +122,14 @@ def cmd_check(args: argparse.Namespace) -> int:
         print(exc.format(), file=sys.stderr)
         return 1
 
-    problems = validate(model)
-    if problems:
+    if problems := check(sources):
         for problem in problems:
             print(problem.format(), file=sys.stderr)
         return 1
 
     print(f"ok: {len(model.pous)} POU(s), {len(model.types)} type(s), {len(model.globals)} global(s)")
     for entry in sorted(model.pous.values(), key=lambda e: e.name):
-        print(f"  {entry.defn.kind:<14} {entry.name}")
+        print(f"  {entry.kind:<14} {entry.name}")
     return 0
 
 
@@ -127,7 +150,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     run_p = sub.add_parser("run", help="run the POU and print the resulting variables")
     common(run_p)
-    run_p.set_defaults(func=cmd_run)
     run_p.add_argument("--scans", type=int, default=1, help="number of scans to run")
     run_p.add_argument("--expect", action="append", default=[],
                        help="assert NAME=VALUE after the run; repeatable")
@@ -138,6 +160,10 @@ def build_parser() -> argparse.ArgumentParser:
     scan_p.add_argument("--scans", type=int, default=1)
     scan_p.add_argument("--trace", action="store_true", help="print each scan, not just the last")
     scan_p.set_defaults(func=cmd_scan)
+
+    vars_p = sub.add_parser("vars", help="list the POU's inputs and outputs")
+    common(vars_p)
+    vars_p.set_defaults(func=cmd_vars)
 
     check_p = sub.add_parser("check", help="parse and link without executing")
     check_p.add_argument("source", nargs="+", help="one or more .st files")

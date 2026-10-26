@@ -10,9 +10,9 @@ from __future__ import annotations
 
 from typing import Any, Callable
 
-from . import ast_nodes as A
-from .errors import IecError, IecNameError, IecTypeError
-from .values import (
+from iecst.core import ast_nodes as A
+from iecst.core.errors import IecError, IecNameError, IecTypeError
+from iecst.core.values import (
     ANY,
     ARRAY,
     BUILTIN_TYPES,
@@ -363,7 +363,7 @@ class Model:
         return t
 
     def _load_stdlib(self) -> None:
-        from .stdlib import STANDARD_FUNCTIONS, standard_fb_types
+        from iecst.core.stdlib import STANDARD_FUNCTIONS, standard_fb_types
 
         self.stdlib.update(STANDARD_FUNCTIONS)
         # Registered as types so that ``ton1 : TON;`` resolves; a user
@@ -374,7 +374,7 @@ class Model:
 
 def load_sources(sources: dict[str, str], model: Model | None = None) -> Model:
     """Parse and link *sources* (filename to text) into a :class:`Model`."""
-    from .parser import parse_text
+    from iecst.core.parser import parse_text
 
     model = model or Model()
     units = [parse_text(text, name) for name, text in sources.items()]

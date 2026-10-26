@@ -1,8 +1,8 @@
 import struct
 import unittest
 
-from iecst.errors import IecTypeError
-from iecst.values import (
+from iecst.core.errors import IecTypeError
+from iecst.core.values import (
     ARRAY,
     BUILTIN_TYPES,
     ENUM,

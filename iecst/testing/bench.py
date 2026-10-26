@@ -1,52 +1,33 @@
-"""The public surface of the package, geared towards writing tests.
+"""``Testbench`` -- the assertion layer, for people writing tests.
 
-Typical use::
+This is the layer that turns a :class:`~iecst.core.session.Session` into
+something a test reads well in: ``expect(...)`` records a result instead of
+raising, so one run reports every mismatch, and ``summary()`` prints them.
 
-    from iecst.api import Testbench
-
-    tb = Testbench.from_file("FB_Motor.st", pou="FB_Motor", cycle_time="10ms")
-    tb.set(Start=True, Setpoint=1000)
-    tb.run(60)
-    tb.expect(Running=True, Speed=1000)
-    print(tb.summary())
-
-Values are converted with the usual Python spellings: ``True`` for BOOL,
-``100`` for INT, ``1.5`` for REAL, ``"1m30s"`` for TIME, ``"Color#Red"`` for an
-enumeration member.
+It is deliberately *not* part of the core.  A GUI does not want assertions; a
+CLI only wants them for ``--expect``.  Both build on ``Session`` directly, and
+import this module only when the concept of an expectation is actually needed.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Iterable, Mapping, Sequence
+from typing import Any, Mapping, Sequence
 
-from .errors import IecError, IecNameError
-from .interpreter import Runtime
-from .model import Model, load_sources, validate
-from .stdlib import format_time
-from .values import PointerValue
+from iecst.core.errors import IecError, IecNameError
+from iecst.core.model import Model
+from iecst.core.session import Session, sources_from_folder
+from iecst.core.stdlib import format_time
+from iecst.core.values import PointerValue
 
-
-def load(files: "str | Path | Iterable[str | Path] | Mapping[str, str]") -> Model:
-    """Load one or more ``.st`` files (or a name-to-text mapping) into a model."""
-    if isinstance(files, Mapping):
-        sources = {str(k): v for k, v in files.items()}
-    else:
-        if isinstance(files, (str, Path)):
-            files = [files]
-        sources = {}
-        for f in files:
-            path = Path(f)
-            sources[str(path)] = path.read_text(encoding="utf-8", errors="replace")
-
-    # Each file is parsed independently, but types and POUs may be spread
-    # across them, so `load_sources` links the whole set before building.
-    return load_sources(sources)
+__all__ = ["Expectation", "Testbench", "run_scenario"]
 
 
 @dataclass
 class Expectation:
+    """One recorded assertion and its outcome."""
+
     name: str
     expected: Any
     actual: Any
@@ -81,16 +62,25 @@ class Testbench:
 
     def __init__(
         self,
-        model: Model,
-        pou: str,
+        session: "Session | Model",
+        pou: str | None = None,
         *,
         cycle_time: str | int = "10ms",
         trace: bool = False,
     ) -> None:
-        self.model = model
-        self.runtime = Runtime(model, pou, cycle_time=cycle_time, trace=trace)
+        # Accepting a bare Model keeps the common test idiom short --
+        # ``Testbench(load_sources(...), "FB", cycle_time="10ms")`` -- since a
+        # Model alone does not say which POU to run.  A Session already does,
+        # so passing one needs no ``pou``.
+        if isinstance(session, Session):
+            if pou is not None:
+                raise IecNameError("pass either a Session or a Model and POU, not both")
+            self.session = session
+        else:
+            if pou is None:
+                raise IecNameError("a Model needs the name of the POU to run")
+            self.session = Session(session, pou, cycle_time=cycle_time, trace=trace)
         self.expectations: list[Expectation] = []
-        self.pou_name = pou
 
     # -- construction ------------------------------------------------------
 
@@ -105,18 +95,59 @@ class Testbench:
         trace: bool = False,
     ) -> "Testbench":
         """Load *path*, plus any *includes* (library files it depends on)."""
-        files: list[str | Path] = list(includes or []) + [path]
-        model = load(files)
-        if pou is None:
-            candidates = [
-                e.name for e in model.pous.values() if e.defn.kind in ("FUNCTION_BLOCK", "PROGRAM")
-            ]
-            if len(candidates) != 1:
-                raise IecNameError(
-                    f"cannot infer the POU to test; pass pou= (available: {', '.join(sorted(candidates)) or 'none'})"
-                )
-            pou = candidates[0]
-        return cls(model, pou, cycle_time=cycle_time, trace=trace)
+        files = list(includes or []) + [path]
+        return cls(Session.from_files(files, pou, cycle_time=cycle_time, trace=trace))
+
+    @classmethod
+    def from_folder(
+        cls,
+        folder: "str | Path",
+        pou: str | None = None,
+        *,
+        cycle_time: str | int = "10ms",
+        trace: bool = False,
+    ) -> "Testbench":
+        """Load every ``.st`` under *folder* -- the CODESYS delivery shape."""
+        return cls(
+            Session.from_sources(sources_from_folder(folder), pou, cycle_time=cycle_time, trace=trace)
+        )
+
+    @classmethod
+    def from_sources(
+        cls,
+        sources: Mapping[str, str],
+        pou: str,
+        *,
+        cycle_time: str | int = "10ms",
+        trace: bool = False,
+    ) -> "Testbench":
+        """Load a name-to-text mapping -- what the benchmark suites use."""
+        return cls(
+            Session.from_sources(sources, pou, cycle_time=cycle_time, trace=trace)
+        )
+
+    # -- pass-through to the session ---------------------------------------
+
+    @property
+    def pou_name(self) -> str:
+        return self.session.pou_name
+
+    @property
+    def model(self):
+        return self.session.model
+
+    @property
+    def runtime(self):
+        """The :class:`Runtime` underneath, for driving blocks by hand."""
+        return self.session.runtime
+
+    @property
+    def now(self) -> int:
+        return self.session.now
+
+    @property
+    def scans(self) -> int:
+        return self.session.scans
 
     # -- driving -----------------------------------------------------------
 
@@ -127,53 +158,43 @@ class Testbench:
         ``set(Enable=True, Feedback=700.0)``.
         """
         if name is None:
-            self.runtime.set(**{k.upper(): v for k, v in values.items()})
+            self.session.set_many({k.upper(): v for k, v in values.items()})
         else:
             if values:
                 raise IecNameError("set() takes either a name and a value, or keyword arguments")
-            self.runtime.set(name.upper(), value)
+            self.session.set(name, value)
         return self
 
     def set_many(self, values: Mapping[str, Any]) -> "Testbench":
-        for name, value in values.items():
-            self.runtime.set(name.upper(), value)
+        self.session.set_many(values)
         return self
 
     def get(self, name: str) -> Any:
-        return self.runtime.get(name.upper())
+        return self.session.get(name)
 
     def run(self, scans: int = 1) -> "Testbench":
-        self.runtime.run(scans)
+        self.session.run(scans)
         return self
 
     def step(self) -> "Testbench":
-        self.runtime.step()
+        self.session.step()
         return self
 
     def scan(self, **values: Any) -> "Testbench":
         """Set inputs and run exactly one scan -- the common test idiom."""
         return self.set(**values).step()
 
-    @property
-    def now(self) -> int:
-        return self.runtime.now
-
-    @property
-    def scans(self) -> int:
-        return self.runtime.scan
-
     def encode(self, name: str, value: Any) -> Any:
         """Translate a Python literal the way :meth:`set` would."""
         try:
-            cell = self.runtime._find_cell(name.upper())
+            return self.session.encode_for(name, value)
         except IecError:
             return value
-        return self.runtime.encode_for(cell, value)
 
     def _display(self, name: str, value: Any) -> Any:
         """Render *value* for an assertion message, naming enum members."""
         try:
-            return self.runtime.render_for(self.runtime._find_cell(name.upper()), value)
+            return self.session.display(name, value)
         except IecError:
             return value
 
@@ -223,8 +244,7 @@ class Testbench:
 
     def state(self) -> dict[str, Any]:
         """Current variable values, with TIME rendered as ``T#...``."""
-        snapshot = self.runtime.snapshot()
-        return {k: _jsonable(v) for k, v in snapshot.items()}
+        return {k: _jsonable(v) for k, v in self.session.snapshot().items()}
 
 
 def _jsonable(value: Any) -> Any:
@@ -255,11 +275,3 @@ def run_scenario(
         tb.set_many(inputs)
         tb.run(scans)
     return tb.state()
-
-
-def check(
-    files: "str | Path | Iterable[str | Path] | Mapping[str, str]",
-) -> list[IecError]:
-    """Parse and link *files*, returning any problems found without executing."""
-    model = load(files)
-    return validate(model)
