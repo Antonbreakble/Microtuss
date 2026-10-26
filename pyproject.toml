@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "iecst"
+version = "0.1.0"
+description = "Run and test IEC 61131-3 Structured Text function blocks outside CODESYS"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+keywords = ["iec61131-3", "structured-text", "plc", "codesys", "interpreter", "testing"]
+dependencies = []
+
+[project.scripts]
+iecst = "iecst.cli:main"
+
+[tool.setuptools]
+packages = ["iecst"]
+
+[tool.pytest.ini_options]
+# The worked examples and the benchmark suites are plain scripts: each one
+# bootstraps sys.path itself and runs top to bottom when executed directly.
+# pytest would import them twice and trip over that, so they are left to
+# `python3 examples/01_first_test.py`.
+testpaths = ["tests"]
