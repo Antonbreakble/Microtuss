@@ -1,9 +1,10 @@
 """The layers must stay separate, and only point downwards.
 
-``microtuss.core`` is the engine; ``microtuss.testing`` and ``microtuss.cli`` sit on top of
-it; a GUI would be a third peer of ``cli``.  If the core ever starts importing a
-front end, the boundary is gone and every future front end inherits the others'
-baggage -- so the rule is checked rather than trusted.
+``microtuss.core`` is the engine; ``microtuss.testing`` and ``microtuss.cli`` sit
+on top of it; ``microtuss.gui`` is a peer of ``cli`` rather than a layer above
+it.  If the core ever starts importing a front end, the boundary is gone and
+every front end inherits the others' baggage -- so the rule is checked rather
+than trusted.
 
 The check runs in a fresh interpreter: by the time a test in this file runs, the
 test runner has already imported ``microtuss.testing`` itself, which would mask the

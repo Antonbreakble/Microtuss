@@ -5,8 +5,8 @@
     python -m microtuss scan FB_Motor.st --set Start=true --scans 5 --trace
 
 The commands are thin: they parse arguments, call :mod:`microtuss.core.session`,
-and print.  Anything with a decision in it lives in the core, so the shell and
-a future GUI cannot drift apart.
+and print.  Anything with a decision in it lives in the core, so this and the
+GUI cannot drift apart.
 """
 
 from __future__ import annotations
