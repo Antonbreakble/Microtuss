@@ -63,14 +63,15 @@ def load(
 ) -> Model:
     """Load ``.st`` sources into a linked :class:`Model`.
 
-    Accepts a path, several paths, or a name-to-text mapping -- the last is how
-    a GUI holds unsaved editor buffers, where there is no file to read.
+    Accepts a file, a **folder** (every ``.st`` under it, as CODESYS delivers a
+    project), several paths, or a name-to-text mapping -- the last is how a GUI
+    holds unsaved editor buffers, where there is no file to read.
     """
     if isinstance(files, Mapping):
         return load_sources(dict(files))
     if isinstance(files, (str, Path)):
         files = [files]
-    return load_sources(_read_files(files))
+    return load_sources(_read_files(_expand(files)))
 
 
 def load_files(files: "str | Path | Iterable[str | Path]") -> Model:
@@ -81,13 +82,24 @@ def load_files(files: "str | Path | Iterable[str | Path]") -> Model:
 def check(
     files: "str | Path | Iterable[str | Path] | Mapping[str, str]",
 ) -> list[IecError]:
-    """Parse and link without executing; return the problems found.
+    """Parse and link; return the problems found, without executing anything.
 
-    An empty list means the sources are well formed.  Errors inside a POU's
-    variable declarations surface here rather than at the first scan, which is
-    what a "did my export load?" command wants.
+    An empty list means the sources are well formed: they parsed, linked, and
+    every declared variable resolves to a known type.  This is what a "did my
+    export load?" command wants, and it never raises -- an unparseable source is
+    one more problem to report, not an exception to catch::
+
+        if problems := check(sources):
+            for problem in problems:
+                print(problem.format())
     """
-    return validate(load(files))
+    try:
+        model = load(files)
+    except IecError as exc:
+        # A syntax error leaves no model to validate, but it is exactly the
+        # problem the caller asked about, so it comes back as the answer.
+        return [exc]
+    return validate(model)
 
 
 def sources_from_folder(
@@ -100,17 +112,46 @@ def sources_from_folder(
     files are sorted, which keeps loading deterministic: a name clash resolves
     the same way on every machine.
     """
-    root = Path(folder)
-    paths = root.rglob(pattern) if recursive else root.glob(pattern)
-    return _read_files(sorted(paths))
+    return _read_files(_folder_paths(Path(folder), pattern, recursive))
+
+
+def _folder_paths(root: Path, pattern: str = "*.st", recursive: bool = True) -> list[Path]:
+    # Sorted, so that loading is deterministic: a name clash resolves the same
+    # way on every machine.
+    finder = root.rglob if recursive else root.glob
+    return sorted(finder(pattern))
+
+
+def _expand(paths: Iterable[str | Path]) -> list[Path]:
+    """Turn any folder in *paths* into the ``.st`` files under it.
+
+    A caller assembling a file list -- the CLI, with its ``--include`` -- should
+    be able to hand over a project folder as easily as a single file, so a
+    directory is expanded rather than passed on to be read as text.
+    """
+    out: list[Path] = []
+    for path in paths:
+        root = Path(path)
+        out.extend(_folder_paths(root) if root.is_dir() else [root])
+    return out
 
 
 def _read_files(paths: Iterable[str | Path]) -> dict[str, str]:
-    # utf-8-sig because a CODESYS export routinely carries a BOM.
-    return {
-        str(path): Path(path).read_text(encoding="utf-8-sig", errors="replace")
-        for path in paths
-    }
+    """Read each path as UTF-8 text.
+
+    A path that cannot be read -- missing, a directory, no permission -- is an
+    :class:`IecError` like any other problem with the sources, so a caller that
+    reports problems (``check``, the CLI) says what is wrong instead of letting
+    an ``OSError`` escape as a traceback.
+    """
+    sources: dict[str, str] = {}
+    for path in paths:
+        try:
+            # utf-8-sig because a CODESYS export routinely carries a BOM.
+            sources[str(path)] = Path(path).read_text(encoding="utf-8-sig", errors="replace")
+        except OSError as exc:
+            raise IecError(f"cannot read '{path}': {exc.strerror or exc}") from exc
+    return sources
 
 
 # -- describing the POU's interface ----------------------------------------
@@ -189,8 +230,18 @@ class Session:
 
     @classmethod
     def from_folder(cls, folder: "str | Path", pou: str | None = None, **kwargs: Any) -> "Session":
-        """Load a project folder, inferring the POU when there is only one."""
-        return cls.from_sources(sources_from_folder(folder), pou or "", **kwargs)
+        """Load a project folder: every ``.st`` under it, as CODESYS ships them.
+
+        *pou* names the block under test.  It can be inferred only when the
+        tree holds exactly one ``FUNCTION_BLOCK`` or ``PROGRAM`` -- which is
+        rare in practice, since a project folder normally also carries library
+        blocks such as ``TON``.  Pass the name; the error lists the candidates
+        when you do not.
+        """
+        # ``load`` already reads a directory as a project folder, so this adds
+        # only the POU inference on top of it.
+        model = load(folder)
+        return cls(model, pou or _sole_pou(model), **kwargs)
 
     @classmethod
     def from_files(

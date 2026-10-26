@@ -184,11 +184,18 @@ $ iecst run   valve.st --set Cmd=true --scans 3 --expect Open=true   # код 1 
 
 $ iecst run Tank.st --include Types.st --include Utils.st \
       --set 'Limits={"lo": 0, "hi": 50}' --scans 5
+
+$ iecst check my_project/                       # папка читается целиком
+$ iecst run   my_project/ --pou FB_Tank --set Fill=true --scans 2
 ```
 
 Общие ключи: `--pou` (если в файле не один блок), `--include` (библиотека,
 повторяемый), `--cycle` (время скана, по умолчанию `10ms`), `--set` (значение
 `NAME=VALUE`; структуру можно задать JSON-ом).
+
+Вместо файла везде можно дать папку — она раскрывается во все `.st` под ней,
+как проект отдаёт CODESYS. `iecst check` при этом сообщает о проблемах списком
+и не падает с исключением.
 
 ## Что поддерживается
 
@@ -235,8 +242,9 @@ iecst/
     bench.py        Testbench: expect() записывает, а не бросает
   cli/            командная строка
     commands.py     разбор аргументов и печать
-tests/          юнит-тесты интерпретатора (262)
+tests/          юнит-тесты интерпретатора (277)
 examples/       минимальные примеры, по одному на тему
+                python-tests.md — справочник по API для тестов из Python
 benchmarks/     тесты на настоящих блоках (46)
 ```
 
@@ -288,7 +296,7 @@ s.snapshot()          # всё состояние: TIME как T#..., enum им�
 ## Тесты
 
 ```console
-$ python3 -m unittest discover -s tests -t .             # 262 юнит-теста
+$ python3 -m unittest discover -s tests -t .             # 277 юнит-тестов
 $ python3 examples/01_first_test.py                      # примеры — обычные скрипты
 $ python3 benchmarks/analog_input/test_analog_input.py   # реальный блок, 32 теста
 ```
@@ -296,6 +304,10 @@ $ python3 benchmarks/analog_input/test_analog_input.py   # реальный бл
 Зависимостей нет: юнит-тесты идут на встроенном `unittest`, примеры и
 бенчмарки — самостоятельные скрипты, каждый со своим `sys.path`. `pytest` тоже
 подойдёт — `python3 -m pytest tests/` — но он не требуется.
+
+Как писать тесты из Python — [`examples/python-tests.md`](examples/python-tests.md):
+весь API по порядку возрастания сложности, с объяснением семантики скана,
+таймеров и `VAR_IN_OUT`.
 
 ## Лицензия
 

@@ -15,6 +15,10 @@ import sys
 import unittest
 from pathlib import Path
 
+# This file sits in examples/, so running it directly puts examples/ -- not
+# the repository root -- on sys.path, and `iecst` would not be importable.
+# Add the root.  After `pip install -e .` the package is on the path anyway,
+# and this line changes nothing.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from iecst import Testbench  # noqa: E402

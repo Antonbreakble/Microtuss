@@ -163,11 +163,31 @@ class Runtime:
         """Return the storage cell behind *name*, so two POUs can share it.
 
         Passing the returned cell as an argument to another instance is how a
-        test wires one block's output into another block's VAR_IN_OUT.
+        test wires one block's output into another block's VAR_IN_OUT::
+
+            cell = producer.bind("POS")
+            consumer.bind("POS", cell)
+
+        A :class:`Cell` argument means "alias this storage", not "store this
+        value" -- the same distinction the language makes for VAR_IN_OUT when
+        one block calls another.
         """
         cell = self._find_cell(name)
         if value is not None:
-            self.write_cell(cell, value)
+            if isinstance(value, Cell):
+                if cell.type.kind != REFERENCE:
+                    raise IecTypeError(
+                        f"'{name}' is not a VAR_IN_OUT, so it cannot be bound to "
+                        f"another cell; assign a value instead"
+                    )
+                # The donor may itself be a VAR_IN_OUT; follow the chain to the
+                # cell that actually holds the storage.
+                target = value
+                while target.type.kind == REFERENCE and isinstance(target.value, Cell):
+                    target = target.value
+                cell.value = target
+            else:
+                self.write_cell(cell, value)
         return cell
 
     # -- instantiation -----------------------------------------------------

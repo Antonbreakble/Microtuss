@@ -39,11 +39,14 @@ END_FUNCTION_BLOCK
 
 
 FUNCTION Pct : REAL
-(* Where v sits between lo and hi, in percent. *)
+(* Where v sits between lo and hi, in percent.
+
+   The bounds carry defaults, so a caller may leave them out -- which is how a
+   FUNCTION's own defaults are exercised from Python (see "Вызов FUNCTION"). *)
 VAR_INPUT
     v : REAL;
-    lo : REAL;
-    hi : REAL;
+    lo : REAL := 0.0;
+    hi : REAL := 100.0;
 END_VAR
     IF hi = lo THEN
         Pct := 0.0;

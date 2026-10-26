@@ -116,17 +116,14 @@ def cmd_vars(args: argparse.Namespace) -> int:
 def cmd_check(args: argparse.Namespace) -> int:
     sources: list[str | Path] = list(args.source)
     sources.extend(args.include or [])
-    try:
-        model = load(sources)
-    except IecError as exc:
-        print(exc.format(), file=sys.stderr)
-        return 1
-
+    # check() reports a syntax error as a problem rather than raising, so this
+    # command says what is wrong without a try/except of its own.
     if problems := check(sources):
         for problem in problems:
             print(problem.format(), file=sys.stderr)
         return 1
 
+    model = load(sources)
     print(f"ok: {len(model.pous)} POU(s), {len(model.types)} type(s), {len(model.globals)} global(s)")
     for entry in sorted(model.pous.values(), key=lambda e: e.name):
         print(f"  {entry.kind:<14} {entry.name}")

@@ -17,7 +17,7 @@ from typing import Any, Mapping, Sequence
 
 from iecst.core.errors import IecError, IecNameError
 from iecst.core.model import Model
-from iecst.core.session import Session, sources_from_folder
+from iecst.core.session import Session
 from iecst.core.stdlib import format_time
 from iecst.core.values import PointerValue
 
@@ -108,9 +108,9 @@ class Testbench:
         trace: bool = False,
     ) -> "Testbench":
         """Load every ``.st`` under *folder* -- the CODESYS delivery shape."""
-        return cls(
-            Session.from_sources(sources_from_folder(folder), pou, cycle_time=cycle_time, trace=trace)
-        )
+        # Session.from_folder owns the inference, so that the CLI, a GUI and
+        # this all agree on which block was picked.
+        return cls(Session.from_folder(folder, pou, cycle_time=cycle_time, trace=trace))
 
     @classmethod
     def from_sources(
